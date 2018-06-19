@@ -1,7 +1,7 @@
 
 //繁殖和猎食
-progam solidity ^0.4.19;
-import "./zombieFactory.sol";
+progma solidity ^0.4.19;
+import "./zombiefactory.sol";
 
 //创建迷恋猫的接口
 contract KittyInterface {
@@ -16,8 +16,8 @@ contract KittyInterface {
         uint256 sireId,
         uint256 generation,
         uint256 genes
-    )
-};
+    );
+}
 contract ZombieFeeding is ZombieFactory {
   //迷恋猫合约的地址
   //address ckAddress = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
@@ -25,12 +25,17 @@ contract ZombieFeeding is ZombieFactory {
   //KittyInterface kittyContract = KittyInterface(ckAddress);  //初始化迷恋猫接口
 
 //声明 迷恋猫接口
-KittyInterface kittyContract；
+KittyInterface kittyContract;
 //更改迷恋猫合约地址的函数
   function setKittyContractAddress(address _address) external onlyOwner {
-   kittyContract = kittyInterface(_address);
+   kittyContract = KittyInterface(_address);
  }
 
+ // 1. 在这里创建 modifier，只允许调用者是主人才能使用
+ modifier onlyOwnerOf(uint _zombieId) {
+   require(msg.sender == zombieToOwner[_zombieId]);
+   _;
+ }
 
  // 1. 在这里定义 `_triggerCooldown` 函数
  function _triggerCooldown(Zombie storage _zombie) internal {
@@ -41,9 +46,9 @@ KittyInterface kittyContract；
  function _isReady(Zombie storage _zombie) internal view returns(bool) {
      return (_zombie.readyTime <= now);
  }
-  //猎食和繁殖  // 1. 使这个函数的可见性为 internal
-function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) internal {
-    require(zombieToOwner[_zombieId] == msg.sender); //检查是否是准人
+  //猎食和繁殖  // 1. 使这个函数的可见性为 internal  添加ownerOf修饰符 减少重复代码
+function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) internal onlyOwnerOf(_zombieId) {
+//    require(zombieToOwner[_zombieId] == msg.sender); //检查是否是准人
     Zombie storage myZombie = zombies[_zombieId];  //得到zombie的指针
     _targetDna = _targetDna % dnaModulus;   //保证dna为16位
     // 2. 在这里为 `_isReady` 增加一个检查
@@ -57,9 +62,9 @@ function feedAndMultiply(uint _zombieId, uint _targetDna, string _species) inter
     _triggerCooldown(myZombie);
   }
   //吃猫
-function feedOnKitty(uint _zombieId, uint _kittyId, , string _species) public {
+function feedOnKitty(uint _zombieId, uint _kittyId, string _species) public {
     uint kittyDna;
     (,,,,,,,,,kittyDna) = kittyContract.getKitty(_kittyId);
-    feedAndMultiply(_zombieId, kittyDna);
+    feedAndMultiply(_zombieId, kittyDna, _species);
   }
 }
