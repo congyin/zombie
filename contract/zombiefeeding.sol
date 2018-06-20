@@ -1,6 +1,6 @@
 
 //繁殖和猎食
-progma solidity ^0.4.19;
+pragma solidity ^0.4.19;
 import "./zombiefactory.sol";
 
 //创建迷恋猫的接口
